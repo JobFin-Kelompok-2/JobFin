@@ -10,7 +10,45 @@ class PengelolaController extends Controller
     public function index()
     {
         $users = DB::select('SELECT * FROM users');
-        return view('page_pengelola.pengelolaHome', compact('users'));
+        
+        // Prepare analytics data
+        $analytics = [
+            'totalTesTeknis' => 0,
+            'totalTesBakat' => 0,
+            'totalPenempatan' => 0,
+            'teknisLabels' => [],
+            'teknisData' => [],
+            'bakatLabels' => [],
+            'bakatData' => []
+        ];
+        
+        // Array kosong buat hitung tes teknis dan tes bakat
+        $teknisResults = [];
+        $bakatResults = [];
+        
+        foreach ($users as $user) {
+            if (!empty($user->tes_teknis)) {
+                $analytics['totalTesTeknis']++;
+                $teknisResults[$user->tes_teknis] = ($teknisResults[$user->tes_teknis] ?? 0) + 1;
+            }
+            
+            if (!empty($user->tes_bakat)) {
+                $analytics['totalTesBakat']++;
+                $bakatResults[$user->tes_bakat] = ($bakatResults[$user->tes_bakat] ?? 0) + 1;
+            }
+            
+            if (!empty($user->penempatan_kerja)) {
+                $analytics['totalPenempatan']++;
+            }
+        }
+        
+        // Untuk chart data
+        $analytics['teknisLabels'] = array_keys($teknisResults);
+        $analytics['teknisData'] = array_values($teknisResults);
+        $analytics['bakatLabels'] = array_keys($bakatResults);
+        $analytics['bakatData'] = array_values($bakatResults);
+        
+        return view('page_pengelola.pengelolaHome', compact('users', 'analytics'));
     }
 
     public function edit($id)
