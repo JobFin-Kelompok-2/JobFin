@@ -34,14 +34,29 @@ class TeknisController extends Controller
             $skor[$kategori] += $nilai;
         }
 
+        // Hitung total skor
+        $totalSkor = array_sum($skor);
+        
+        // Hindari pembagian dengan nol
+        if ($totalSkor == 0) {
+            $totalSkor = 1; // Set default ke 1 untuk menghindari division by zero
+        }
+
         // Urutkan skor dari tertinggi ke terendah
         arsort($skor);
 
         // Ambil 3 skor tertinggi
         $topThree = array_slice($skor, 0, 3, true);
 
-        // Dapatkan kode RIASEC yang diurutkan
+        // Generate ordered RIASEC code
         $orderedCode = $this->getOrderedRiasecCode($topThree);
+
+        // Simpan ke session
+        session([
+            'skor_riasec' => $skor,
+            'total_skor_riasec' => $totalSkor,
+            'top_three' => $topThree
+        ]);
 
         // Simpan ke database
         $userId = Auth::id();
@@ -55,12 +70,6 @@ class TeknisController extends Controller
             $penempatan = $penempatanController->updatePenempatan($orderedCode, $user->tes_bakat);
             DB::update('UPDATE users SET penempatan_kerja = ? WHERE id = ?', [$penempatan, $userId]);
         }
-
-        // Simpan skor ke session
-        session([
-            'skor_riasec' => $skor,
-            'top_three' => $topThree
-        ]);
 
         return redirect()->route('teknis.hasil');
     }
@@ -87,7 +96,12 @@ class TeknisController extends Controller
     public function hasil()
     {
         $skor = session('skor_riasec');
+        $totalSkor = session('total_skor_riasec');
         $topThree = session('top_three');
+
+        if (!$skor || !$totalSkor || !$topThree) {
+            return redirect()->route('page.testTeknis.teknisSoal')->with('error', 'Anda belum mengerjakan tes teknis');
+        }
 
         // Deskripsi untuk setiap tipe RIASEC
         $deskripsi = [
@@ -102,7 +116,7 @@ class TeknisController extends Controller
         // Rekomendasi karir untuk setiap kombinasi 3 huruf teratas
         $rekomendasi = $this->getRekomendasiKarir(array_keys($topThree));
 
-        return view('page.testTeknis.hasilTeknis', compact('skor', 'topThree', 'deskripsi', 'rekomendasi'));
+        return view('page.testTeknis.hasilTeknis', compact('skor', 'totalSkor', 'topThree', 'deskripsi', 'rekomendasi'));
     }
 
     private function getRekomendasiKarir($topThreeTypes)
@@ -134,5 +148,25 @@ class TeknisController extends Controller
         }, $orderedTypes));
 
         return $code;
+    }
+
+    public function submitFeedback(Request $request)
+    {
+        $request->validate([
+            'feedback_teknis' => 'required|string|max:1000'
+        ]);
+
+        $userId = Auth::id();
+        DB::update('UPDATE users SET feedback_teknis = ? WHERE id = ?', [$request->feedback_teknis, $userId]);
+
+        return redirect()->back()->with('success', 'Feedback berhasil disimpan!');
+    }
+
+    public function deleteFeedback()
+    {
+        $userId = Auth::id();
+        DB::update('UPDATE users SET feedback_teknis = NULL WHERE id = ?', [$userId]);
+
+        return redirect()->back()->with('success', 'Feedback berhasil dihapus!');
     }
 }

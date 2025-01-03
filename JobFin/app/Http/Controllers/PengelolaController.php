@@ -98,4 +98,27 @@ class PengelolaController extends Controller
 
         return redirect()->route('pengelola.home')->with('success', 'Data user berhasil diupdate!');
     }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string',
+        ]);
+
+        DB::insert('INSERT INTO users (name, email, password, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())', [
+            $request->name,
+            $request->email,
+            bcrypt($request->password)
+        ]);
+
+        return redirect()->route('pengelola.home')->with('success', 'User berhasil ditambahkan!');
+    }
+
+    public function delete($id)
+    {
+        DB::delete('DELETE FROM users WHERE id = ?', [$id]);
+        return redirect()->route('pengelola.home')->with('success', 'User berhasil dihapus!');
+    }
 }

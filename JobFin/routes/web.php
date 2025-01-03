@@ -32,14 +32,15 @@ Route::get("/teknis", function(){return view("page.testTeknis.teknisHome");})->n
 Route::get('/teknis/soal', [TeknisController::class, 'index'])->name('page.testTeknis.teknisSoal');
 Route::post('/teknis/submit', [TeknisController::class, 'submit'])->name('teknis.submit');
 Route::get('/teknis/hasil', [TeknisController::class, 'hasil'])->name('teknis.hasil');
+Route::post('/teknis/feedback-teknis', [TeknisController::class, 'submitFeedback'])->name('teknis.feedback.submit');
+Route::delete('/teknis/feedback-teknis', [TeknisController::class, 'deleteFeedback'])->name('teknis.feedback.delete');
 
 Route::get("/bakat", function(){return view("page.testMinatBakat.bakatHome");})->name("page.testMinatBakat.bakatHome");
 Route::get('/bakat/soal', [BakatController::class, 'showSoal'])->name('bakat.soal');
 Route::post('/bakat/submit', [BakatController::class, 'submitJawaban'])->name('submit.bakat');
-Route::get('/bakat/hasil', function() {
-    return view('page.testMinatBakat.hasilBakat');
-})->name('hasil.bakat');
-
+Route::get('/bakat/hasil', [BakatController::class, 'showHasil'])->name('hasil.bakat');
+Route::post('/bakat/feedback', [BakatController::class, 'submitFeedback'])->name('bakat.feedback.submit');
+Route::delete('/bakat/feedback', [BakatController::class, 'deleteFeedback'])->name('bakat.feedback.delete');
 
 Route::get('/hasil-penempatan', [PenempatanController::class, 'index'])->name('hasil.penempatan');
 
@@ -59,3 +60,5 @@ Route::delete('/admin/delete/{id}', [AdminController::class, 'delete'])->name('a
 Route::get('/pengelola/home', [PengelolaController::class, 'index'])->name('pengelola.home');
 Route::get('/pengelola/edit/{id}', [PengelolaController::class, 'edit'])->name('pengelola.edit');
 Route::put('/pengelola/update/{id}', [PengelolaController::class, 'update'])->name('pengelola.update');
+Route::post('/pengelola/store', [PengelolaController::class, 'store'])->name('pengelola.store');
+Route::delete('/pengelola/delete/{id}', [PengelolaController::class, 'delete'])->name('pengelola.delete');

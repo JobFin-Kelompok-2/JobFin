@@ -88,6 +88,16 @@
             border: 1px solid #F5642A;
             border-radius: 5px;
         }
+        #feedbackTable td {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #feedbackTable td:hover {
+            white-space: normal;
+            overflow: visible;
+        }
     </style>
 </head>
 <body>
@@ -169,6 +179,35 @@
                                 </form>
                             </td>
                         </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="admin-card mt-4">
+            <h2 class="mb-4" style="color: #F5642A;">Daftar Feedback User</h2>
+            <div class="table-responsive">
+                <table class="table table-striped" id="feedbackTable">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Feedback Test Teknis</th>
+                            <th>Feedback Test Bakat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($users as $index => $user)
+                            @if($user->feedback_teknis || $user->feedback_bakat)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $user->name }}</td>
+                                    <td>{{ $user->feedback_teknis ?? 'Belum ada feedback' }}</td>
+                                    <td>{{ $user->feedback_bakat ?? 'Belum ada feedback' }}</td>
+                                </tr>
+                            @endif
                         @endforeach
                     </tbody>
                 </table>
@@ -264,6 +303,25 @@
                         last: "Terakhir",
                         next: "Selanjutnya",
                         previous: "Sebelumnya"
+                    }
+                }
+            });
+
+            $('#feedbackTable').DataTable({
+                "pageLength": 2,
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "language": {
+                    "search": "Cari:",
+                    "lengthMenu": "Tampilkan _MENU_ data per halaman",
+                    "zeroRecords": "Tidak ada data yang ditemukan",
+                    "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
+                    "infoEmpty": "Tidak ada data yang tersedia",
+                    "infoFiltered": "(difilter dari _MAX_ total data)",
+                    "paginate": {
+                        "first": "Pertama",
+                        "last": "Terakhir",
+                        "next": "Selanjutnya",
+                        "previous": "Sebelumnya"
                     }
                 }
             });

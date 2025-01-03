@@ -27,8 +27,6 @@ class BakatController extends Controller
         // Logika penilaian berdasarkan jawaban
         foreach($jawaban as $key => $value) {
             if(strpos($key, 'jawaban_') === 0) {
-                // Implementasi logika penilaian sesuai dengan kategori jawaban
-                // Contoh sederhana:
                 switch($value) {
                     case 'opsi_1':
                         $skor['kreatif'] += 1;
@@ -46,8 +44,11 @@ class BakatController extends Controller
             }
         }
 
-        // Simpan skor ke session atau database
+        $totalSkor = array_sum($skor);
+
+        // Simpan skor ke session
         session(['skor_bakat' => $skor]);
+        session(['total_skor_bakat' => $totalSkor]);
 
         $user = Auth::user();
         $kategoriTertinggi = array_search(max($skor), $skor);
@@ -65,6 +66,18 @@ class BakatController extends Controller
         return redirect()->route('hasil.bakat');
     }
 
+    public function showHasil()
+    {
+        $skor = session('skor_bakat');
+        $totalSkor = session('total_skor_bakat');
+
+        if (!$skor || !$totalSkor) {
+            return redirect()->route('bakat.soal')->with('error', 'Anda belum mengerjakan tes bakat');
+        }
+
+        return view('page.testMinatBakat.hasilBakat', compact('skor', 'totalSkor'));
+    }
+
     private function getKategoriBakat($kategori)
     {
         $kategoriBakat = [
@@ -75,5 +88,25 @@ class BakatController extends Controller
         ];
 
         return $kategoriBakat[$kategori] ?? 'Belum dapat ditentukan';
+    }
+
+    public function submitFeedback(Request $request)
+    {
+        $request->validate([
+            'feedback_bakat' => 'required|string|max:1000'
+        ]);
+
+        $userId = Auth::id();
+        DB::update('UPDATE users SET feedback_bakat = ? WHERE id = ?', [$request->feedback_bakat, $userId]);
+
+        return redirect()->back()->with('success', 'Feedback berhasil disimpan!');
+    }
+
+    public function deleteFeedback()
+    {
+        $userId = Auth::id();
+        DB::update('UPDATE users SET feedback_bakat = NULL WHERE id = ?', [$userId]);
+
+        return redirect()->back()->with('success', 'Feedback berhasil dihapus!');
     }
 }

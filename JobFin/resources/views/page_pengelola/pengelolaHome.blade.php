@@ -94,6 +94,21 @@
             height: 200px; /* Mengatur tinggi chart */
             width: 100%;
         }
+        .btn-danger {
+            margin-left: 5px;
+        }
+        .form-control:focus {
+            border-color: #F5642A;
+            box-shadow: 0 0 0 0.2rem rgba(245, 100, 42, 0.25);
+        }
+        .btn-primary {
+            background-color: #F5642A;
+            border-color: #F5642A;
+        }
+        .btn-primary:hover {
+            background-color: #d54e1f;
+            border-color: #d54e1f;
+        }
     </style>
 </head>
 <body>
@@ -178,6 +193,35 @@
             </div>
         </div>
 
+        <!-- Create User Section -->
+        <div class="admin-card mb-4">
+            <h2 class="mb-4" style="color: #F5642A;">Tambah User Baru</h2>
+            <form action="{{ route('pengelola.store') }}" method="POST">
+                @csrf
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nama</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Tambah User</button>
+            </form>
+        </div>
+
         <!-- User Table Section -->
         <div class="admin-card">
             <h2 class="mb-4" style="color: #F5642A;">Daftar User Terdaftar</h2>
@@ -215,6 +259,13 @@
                             <td>{{ $user->penempatan_kerja ?? 'Belum ada' }}</td>
                             <td>
                                 <a href="{{ route('pengelola.edit', $user->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                <form action="{{ route('pengelola.delete', $user->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus user ini?')">
+                                        Hapus
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         @endforeach

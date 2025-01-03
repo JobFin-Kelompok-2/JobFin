@@ -38,6 +38,30 @@
             border-radius: 8px;
             color: white;
         }
+
+        .current-feedback {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #000;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: #fff;
+        }
+
+        .form-control:focus {
+            border-color: #F5642A;
+            box-shadow: 0 0 0 0.2rem rgba(245, 100, 42, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -47,21 +71,58 @@
         <div class="hasil-card">
             <h2 class="text-center mb-4">Hasil Test RIASEC</h2>
             
-            @foreach($skor as $tipe => $nilai)
-            <div class="kategori-item">
-                <h4>{{ ucfirst($tipe) }}</h4>
-                <div class="progress">
-                    <div class="progress-bar" 
-                         role="progressbar" 
-                         style="width: {{ ($nilai/25) * 100 }}%; background-color: #F5642A;" 
-                         aria-valuenow="{{ ($nilai/25) * 100 }}" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">
-                        {{ $nilai }} poin
-                    </div>
-                </div>
+            <div class="chart-container" style="position: relative; height:60vh; width:100%">
+                <canvas id="riasecChart"></canvas>
             </div>
-            @endforeach
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const ctx = document.getElementById('riasecChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional'],
+                        datasets: [{
+                            label: 'Skor RIASEC',
+                            data: [
+                                {{ ($skor['realistic'] / $totalSkor) * 100 }},
+                                {{ ($skor['investigative'] / $totalSkor) * 100 }},
+                                {{ ($skor['artistic'] / $totalSkor) * 100 }},
+                                {{ ($skor['social'] / $totalSkor) * 100 }},
+                                {{ ($skor['enterprising'] / $totalSkor) * 100 }},
+                                {{ ($skor['conventional'] / $totalSkor) * 100 }}
+                            ],
+                            backgroundColor: [
+                                '#FF6384',
+                                '#36A2EB',
+                                '#FFCE56',
+                                '#4BC0C0',
+                                '#9966FF',
+                                '#FF9F40'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            </script>
 
             <div class="rekomendasi">
                 <h3>Tipe Kepribadian Dominan Anda</h3>
@@ -81,11 +142,51 @@
                     @endforeach
                 </ul>
             </div>
+
+            <div class="hasil-card">
+                <h3 class="mb-4">Feedback Test Teknis</h3>
+                
+                @if(Auth::user()->feedback_teknis)
+                    <div class="current-feedback mb-4">
+                        <h5>Feedback Anda:</h5>
+                        <p class="p-3 bg-light rounded">{{ Auth::user()->feedback_teknis }}</p>
+                        
+                        <div class="mt-2">
+                            <button class="btn btn-warning btn-sm" onclick="showEditForm()">Edit Feedback</button>
+                            <form action="{{ route('teknis.feedback.delete') }}" method="POST" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus feedback?')">
+                                    Hapus Feedback
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+
+                <form id="feedbackForm" action="{{ route('teknis.feedback.submit') }}" method="POST" 
+                      style="{{ Auth::user()->feedback_teknis ? 'display:none;' : '' }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="feedback_teknis" class="form-label">Berikan feedback Anda tentang test teknis ini:</label>
+                        <textarea class="form-control" id="feedback_teknis" name="feedback_teknis" rows="4" 
+                                  placeholder="Bagaimana pendapat Anda tentang test ini? Apa yang perlu diperbaiki?">{{ Auth::user()->feedback_teknis }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                </form>
+            </div>
         </div>
 
         <div class="text-center mt-4">
             <a href="{{ route('page.home') }}" class="btn btn-primary">Kembali ke Beranda</a>
         </div>
     </div>
+
+    <script>
+    function showEditForm() {
+        document.querySelector('.current-feedback').style.display = 'none';
+        document.getElementById('feedbackForm').style.display = 'block';
+    }
+    </script>
 </body>
 </html>

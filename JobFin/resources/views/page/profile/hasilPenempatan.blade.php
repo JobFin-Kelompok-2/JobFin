@@ -91,6 +91,24 @@
             color: white;
         }
 
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .row {
+            margin: 0 -15px;
+        }
+
+        .col-md-6 {
+            padding: 0 15px;
+        }
+
         @media (max-width: 768px) {
             .wrapper {
                 flex-direction: column;
@@ -99,6 +117,10 @@
             .sidebar {
                 width: 100%;
                 margin-bottom: 20px;
+            }
+
+            .chart-container {
+                height: 250px;
             }
         }
     </style>
@@ -112,11 +134,11 @@
                 <i class="fas fa-user"></i>
                 Profile
             </a>
-            <a href="{{ route('profile.edit') }}" class="sidebar-link active">
+            <a href="{{ route('profile.edit') }}" class="sidebar-link">
                 <i class="fas fa-edit"></i>
                 Edit Profile
             </a>
-            <a href="{{ route('hasil.penempatan') }}" class="sidebar-link">
+            <a href="{{ route('hasil.penempatan') }}" class="sidebar-link active">
                 <i class="fas fa-chart-bar"></i>
                 Hasil Test
             </a>
@@ -131,32 +153,30 @@
             <div class="hasil-card">
                 <h2 class="text-center mb-4">Hasil Test dan Penempatan</h2>
                 
-                <div class="hasil-section">
-                    <h4>
-                        Hasil Test Teknis
-                        <span class="test-status {{ $statusTest['teknis'] ? 'status-completed' : 'status-pending' }}">
-                            {{ $statusTest['teknis'] ? 'Selesai' : 'Belum Test' }}
-                        </span>
-                    </h4>
-                    @if($statusTest['teknis'])
-                        <p>{{ $user->tes_teknis }}</p>
-                    @else
-                        <p class="empty-result">Anda belum melakukan test teknis</p>
-                    @endif
-                </div>
-
-                <div class="hasil-section">
-                    <h4>
-                        Hasil Test Bakat
-                        <span class="test-status {{ $statusTest['bakat'] ? 'status-completed' : 'status-pending' }}">
-                            {{ $statusTest['bakat'] ? 'Selesai' : 'Belum Test' }}
-                        </span>
-                    </h4>
-                    @if($statusTest['bakat'])
-                        <p>{{ $user->tes_bakat }}</p>
-                    @else
-                        <p class="empty-result">Anda belum melakukan test bakat</p>
-                    @endif
+                <!-- Chart Container -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="chart-container mb-4">
+                            <h4 class="text-center">
+                                Hasil Test Teknis
+                                <span class="test-status {{ $statusTest['teknis'] ? 'status-completed' : 'status-pending' }}">
+                                    {{ $statusTest['teknis'] ? 'Selesai' : 'Belum Test' }}
+                                </span>
+                            </h4>
+                            <canvas id="teknisChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container mb-4">
+                            <h4 class="text-center">
+                                Hasil Test Bakat
+                                <span class="test-status {{ $statusTest['bakat'] ? 'status-completed' : 'status-pending' }}">
+                                    {{ $statusTest['bakat'] ? 'Selesai' : 'Belum Test' }}
+                                </span>
+                            </h4>
+                            <canvas id="bakatChart"></canvas>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="penempatan-section">
@@ -170,5 +190,53 @@
             </div>
         </div>
     </div>
+
+    <!-- Add Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Konfigurasi umum untuk chart
+        const chartOptions = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        };
+
+        // Chart untuk Test Teknis
+        @if($statusTest['teknis'])
+            const teknisCtx = document.getElementById('teknisChart').getContext('2d');
+            const teknisData = '{{ $user->tes_teknis }}'.split(', ');
+            new Chart(teknisCtx, {
+                type: 'pie',
+                data: {
+                    labels: teknisData,
+                    datasets: [{
+                        data: teknisData.map(() => 1), // Equal portions
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                    }]
+                },
+                options: chartOptions
+            });
+        @endif
+
+        // Chart untuk Test Bakat
+        @if($statusTest['bakat'])
+            const bakatCtx = document.getElementById('bakatChart').getContext('2d');
+            const bakatData = ['{{ $user->tes_bakat }}'];
+            new Chart(bakatCtx, {
+                type: 'pie',
+                data: {
+                    labels: bakatData,
+                    datasets: [{
+                        data: [1], // Single portion
+                        backgroundColor: ['#4BC0C0']
+                    }]
+                },
+                options: chartOptions
+            });
+        @endif
+    </script>
 </body>
 </html>

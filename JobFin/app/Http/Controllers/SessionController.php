@@ -22,7 +22,6 @@ class SessionController extends Controller
             "password.required"=>"isi password"
         ]);
 
-        // Cek apakah email dan password adalah admin
         if ($request->email === 'admin@gmail.com') {
             $admin = DB::select('SELECT * FROM admins WHERE email = ?', [$request->email]);
             
@@ -32,7 +31,6 @@ class SessionController extends Controller
             }
         }
 
-        // Cek apakah email dan password adalah pengelola
         if ($request->email === 'pengelola@gmail.com') {
             $pengelola = DB::select('SELECT * FROM pengelola WHERE email = ?', [$request->email]);
             
@@ -58,7 +56,7 @@ class SessionController extends Controller
         
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        session()->forget('is_admin'); // Hapus status admin dari session
+        session()->forget('is_admin');
         
         return redirect('/')->with('success', 'Berhasil logout!');
     }
